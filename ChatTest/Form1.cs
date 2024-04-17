@@ -28,8 +28,15 @@ namespace ChatTest
         Socket clntSock;
         bool clientOn = false;
         bool serverOn = false;
-        string nameError = "Invalid Name";
         string aUser, bUser;
+        string hostIP;
+
+
+        //ERRORS
+        string nameError = "Invalid Name", 
+            connectionError = "Not Connected to Room",
+            alreadyConnectedError = "Already Connected",
+            noError = "No Error";
 
 
         private void Form1_Load(object sender, EventArgs e)
@@ -62,21 +69,21 @@ namespace ChatTest
         {
             serverOn = true;
             // Constants
-            string host = GetLocalIPAddress(); // Get the local host IP address
+            hostIP = GetLocalIPAddress(); // Get the local host IP address
             int port = 42069;
             
 
             // Init
             Socket servSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            servSock.Bind(new IPEndPoint(IPAddress.Parse(host), port));
+            servSock.Bind(new IPEndPoint(IPAddress.Parse(hostIP), port));
             servSock.Listen(1);
 
             // Wait for client
-            richTextBox2.AppendText("Server started on " + host + ":" + port + "\n");
+            richTextBox2.AppendText("Server started on " + hostIP + ":" + port + "\n");
             clntSock = servSock.Accept();
             IPEndPoint clntAddr = (IPEndPoint)clntSock.RemoteEndPoint;
             richTextBox2.AppendText("Connection started with " + clntAddr.Address + ":" + clntAddr.Port + "\n");
-            string signal = "You have joined the server: " + host + ":" + port + "\n";
+            string signal = "You have joined the server: " + hostIP + ":" + port + "\n";
             clntSock.Send(Encoding.UTF8.GetBytes(signal));
             
             ChatSetup();
@@ -86,7 +93,7 @@ namespace ChatTest
         {
             clientOn = true;
             // Init
-            string hostIP = GetLocalIPAddress(); 
+            hostIP = GetLocalIPAddress(); 
 
             // Join server
             clntSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -126,6 +133,9 @@ namespace ChatTest
                     bUser = aUser;
                 }
 
+                onlineCount = listBox1.Items.Count;
+                label2.Text = onlineCount.ToString();
+
                 richTextBox2.AppendText(message);
 
                 
@@ -143,8 +153,7 @@ namespace ChatTest
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            onlineCount = listBox1.Items.Count;
-            label2.Text = onlineCount.ToString();
+            label4.Text = noError;
         }
 
         //SET NAME
@@ -173,6 +182,10 @@ namespace ChatTest
                     richTextBox1.Text = "";
                 }
             }
+            else
+            {
+                label4.Text = connectionError;
+            }
         }
 
         //server
@@ -180,7 +193,7 @@ namespace ChatTest
         {
             if (clientOn || serverOn)
             {
-
+                label4.Text = alreadyConnectedError;
             }
             else
             {
@@ -190,7 +203,7 @@ namespace ChatTest
                 }
                 else
                 {
-                    label4.Text = "No Errors";
+                    label4.Text = noError;
                     if (!clientOn && !serverOn)
                         ServerSetup();
                 }
@@ -202,7 +215,7 @@ namespace ChatTest
         {
             if (clientOn || serverOn)
             {
-
+                label4.Text = alreadyConnectedError;
             }
             else {
                 if (String.IsNullOrWhiteSpace(Username))
